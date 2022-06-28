@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+</head>
+<body>
+    
+    <canvas id="board" width="600" height="600"></canvas>
+    <h2 id="heading">Score: <span id="score">0</span> </h2>
+
+</body>
+
+<style>
+
+    body {
+        background-color: #22213d;
+    }
+
+    #board {
+        border: 5px solid #000;
+    }
+
+    h2 {
+        font-family: sans-serif;
+        font-size: 2em;
+        color: #fff;
+    }
+
+    h2 span {
+        color: #FAA730;
+    }
+
+</style>
+
+<script>
+    
+    document.addEventListener('keypress', controls)
+
+    const board = document.getElementById('board');
+    const heading = document.getElementById('heading');
+    const scoreElemenet = document.getElementById('score');
+    let score = +scoreElemenet.textContent
+    const ctx = board.getContext('2d');
+    let isGameRunning = true;
+
+    const snakeColor = '#402E2C';
+    const foodColor = '#000'
+    const boardSpaceColor = '#fff';
+    const gridColor = '#FAA730';
+
+    let snakeSize = 40;
+    let snakeSpeed = snakeSize;
+    const TailSize = snakeSize;
+    let snakeX = 40;
+    let snakeY = 200;
+    let snakeTail = [];
+    let snakeLength = 1;
+
+    let directionX = 1;
+    let directionY = 0;
+    
+    let FoodX = 0;
+    let FoodY = 0;
+
+    const rowLength = board.width / snakeSize;
+    const columnLength = board.height / snakeSize;
+    const fps = 15;
+
+    function gameStart() {
+        if(isGameRunning) {
+            drawGame()
+            Move()  
+            setTimeout(gameStart, 1000 / fps)
+        }
+    }
+
+    function endGame() {
+        heading.innerHTML = `Prehral si. Tvoje score je <span id="score">${score}</span>`
+        isGameRunning = false;
+    }
+    
+    foodPosition()
+    gameStart()
+
+    function drawGame() {
+        /* GAME */
+        drawRectangle(boardSpaceColor, 0, 0, board.width, board.height)
+        /* GRID */
+        drawGrid()
+        /* FOOD */
+        drawRectangle(foodColor, FoodX, FoodY, snakeSize, snakeSize)
+        /* SNAKE */
+        drawRectangle(snakeColor, snakeX, snakeY, snakeSize, snakeSize);
+        /* SNAKE'S TAIL */
+        snakeTail.forEach(TailPart => {
+            drawRectangle(snakeColor, TailPart.prevX, TailPart.prevY, TailSize, TailSize)
+        });
+    }
+    
+    function drawRectangle(color, x, y, snakeWidth, snakeHeight) {
+        ctx.fillStyle = color
+        ctx.fillRect(x, y, snakeWidth, snakeHeight)
+    }
+
+    function drawGrid() {
+        for (let i = 0; i < rowLength; i++) {
+            for (let k = 0; k < columnLength; k++) {    
+                drawRectangle(gridColor, snakeSize * i, snakeSize * k, snakeSize - 1, snakeSize - 1)
+            }
+        }
+    }
+
+    function drawTail() {
+        snakeTail.push({prevX: snakeX, prevY: snakeY});
+        snakeTail = snakeTail.slice(-1 * snakeLength);
+    }
+
+    function foodPosition() {
+        FoodX = Math.floor(Math.random() * rowLength) * snakeSize
+        FoodY = Math.floor(Math.random() * columnLength) * snakeSize
+    }
+
+    function foodColision() {
+        if (snakeX === FoodX && snakeY === FoodY) {
+            score++;
+            snakeLength++;
+            scoreElemenet.textContent = score;
+            foodPosition()
+        }
+    }   
+
+    function Move () {
+        snakeX += snakeSpeed * directionX;
+        snakeY += snakeSpeed * directionY;
+        
+        if (snakeX === board.width) {
+            endGame()
+        }
+        if (snakeX + snakeSize === 0) {
+            endGame()
+        }
+        if (snakeY === board.height) {
+            endGame()
+        }
+        if (snakeY + snakeSize === 0) {
+            endGame()
+        }
+
+        snakeTail.forEach(TailPart => {
+            if (snakeX === TailPart.prevX && snakeY === TailPart.prevY) {
+                endGame()
+            }
+        });
+
+        drawTail()
+        foodColision()
+    }
+
+    function controls(e) {
+        switch(e.key) {
+            case 'w':
+                if (directionY !== 1) {
+                    directionX = 0;
+                    directionY = -1;
+                }
+                break;
+            case 's':
+                if (directionY !== -1) {
+                    directionX = 0;
+                    directionY = 1;
+                }
+                break;
+            case 'a':
+                if (directionX !== 1) {
+                    directionX = -1;
+                    directionY = 0;
+                }
+                break;
+            case 'd':
+                if (directionX !== -1) {
+                    directionX = 1;
+                    directionY = 0;
+                }
+                break;
+            default: 
+                if(!isGameRunning) location.reload();
+                break;
+        }
+    }
+
+
+</script>
+
+</html>
